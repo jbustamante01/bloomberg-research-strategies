@@ -1,87 +1,79 @@
 # bloomberg-research-strategies
-Quantitative equity research project using Bloomberg BQuant (BQL) to design multi‑factor screeners and backtest systematic investment strategies.
+
+Quantitative equity research using Bloomberg BQuant (BQL) to build multi-factor screeners and backtest systematic long-only strategies.
 
 ---
 
-Pursuing excess returns can be both fun and daunting. Here, we explore different equity screeners, portfolio construction and strategy ideas in a paper‑trading environment.
+Pursuing excess returns can be both fun and daunting. Here I explore different equity screeners, portfolio construction ideas, and signal-driven strategies in a paper-trading environment.
 
 ---
 
-## Overview
-Multi-factor investment research pipeline developed on Bloomberg BQuant using BQL (Adapation to public data WIP)
+## Strategy: Value + Technical (Tiered)
 
-## Methodology
+The core idea is simple — find fundamentally cheap names and use technicals to time the entry. Rather than buying everything that screens well, the entry bar adjusts based on how undervalued a name is. Deep value names get more room on the technical side because the fundamental case is strong enough to carry short-term noise. Moderate value names need stronger technical confirmation before entering.
 
-### 1. Universe Construction
-- Pulled constituents from SPX, Russell 2000, Nasdaq-100
-- Deduplicated across indices
-- Final universe: ~800 unique securities
+### Universe
 
-### 2. Factor Construction
-**Value Factors:**
-- FCF Yield
-- Price/Sales (inverted)
-- P/E Ratio (inverted)
-- EV/EBITDA (inverted)
+- Russell 3000 + Nasdaq 100, deduplicated on ticker
+- Names must rank in the top 150 across all three composite models to make the cut
+- Typically produces 30-50 names depending on market conditions
 
-**Profitability Factors:**
-- 3-Year Average ROE
-- 3-Year Average ROIC
-- Operating Margin Change
+### Factor Groups
 
-**Momentum Factors:**
-- 12-1 month momentum
-- 6-1 month momentum
-- 3-1 month momentum
+**Value** — FCF Yield, P/Sales, P/E, EV/EBITDA (lower multiples ranked higher)
 
-### 3. Composite Ranking Models
-- **Percentile Composite:** Cross-sectional percentile ranks
-- **Z-Score Composite:** Standardized factor scores
-- **PCA Composite:** First principal component
+**Profitability** — 3Y avg ROE, 3Y avg ROIC, operating margin change YoY
 
-### 4. Signal Generation
-Combined fundamental and technical signals:
-- Value + Profitability screens
-- Technical confirmation (SMA, RSI, MACD)
-- Entry/exit rules with mean-reversion logic
+**Momentum** — 12-1, 6-1, and 3-1 month returns (skipping the most recent month to avoid reversal)
 
-### 5. Backtesting
-- Equal-weight long-only portfolio
-- Daily rebalancing on signals
-- 1-year lookback period
-- Performance vs SPY benchmark
+### Composite Ranking
 
-## Results Summary
+Each factor group is scored three ways and a name needs to rank highly on all three to pass:
 
-## Technical Implementation
+- Percentile rank across the universe
+- Z-score composite
+- First principal component (PCA)
 
-**Tools:**
-- Bloomberg BQuant (Python environment)
-- BQL for data access
-- pandas, numpy, scikit-learn
-- matplotlib for visualization
+### Entry Tiers
 
-## Key Learnings
+| Tier | Value Pctle | P/SMA50 | RSI | MACD |
+|------|------------|---------|-----|------|
+| Deep Value | > 80 | < 1.25 | < 72 | — |
+| Good Value | 60–80 | < 1.20 | < 65 | > 0 |
+| Moderate | 50–60 | < 1.10 | < 58 | — |
 
-- Factor combination improves signal quality
-- Technical confirmation reduces false positives
-- Equal-weight outperforms cap-weight in this universe
-- Mean-reversion works better than momentum in current regime
+During true stress periods (SPY below SMA200 **and** VIX above 25), all bars tighten by one notch.
+
+### Exit Rules
+
+- **Extended**: P/SMA50 > 1.35 — stock has run, take profit
+- **Overbought**: RSI > 80
+- **Stop loss**: P/SMA50 < 0.92 — trend has broken
+
+### Portfolio Construction
+
+- Long only
+- Fixed dollar sizing per trade (default $1,000 — adjust to your own sizing)
+- No position cap — signals drive everything, cash when no signals
+
+### Backtest Notes
+
+The backtest uses the current screener universe applied historically, so universe selection bias is present — names that rank well today generally performed well over the past year. What the backtest does validate is that the entry/exit signal timing works on fundamentally strong names. The current signals table is the primary output; the backtest validates the logic behind it.
+
+---
+
+## Technical Stack
+
+- Bloomberg BQuant (Python notebook environment)
+- BQL for all data access
+- pandas, numpy, scikit-learn (PCA), matplotlib
 
 ---
 
 ## Contact
 
-
 **Email:** jason.a.bustamante01@gmail.com
 
+---
 
-## Note on Code Access
-
-This project was developed within Bloomberg's BQuant environment. Due to Bloomberg's data licensing and security policies, the code and data cannot be shared outside the platform.
-
-## Disclaimer
-
-This repository is for educational and research purposes only.
-All data is sourced from Bloomberg Terminal via BQL.
-This does not constitute investment advice.
+*For educational and research purposes only. Not investment advice.*
