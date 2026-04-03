@@ -13,7 +13,7 @@ The core idea is simple — find fundamentally cheap names and use technicals to
 
 ### Universe
 
-- Russell 3000 + Nasdaq 100, deduplicated on ticker
+- Russell 3000, deduplicated on ticker
 - Names must rank in the top 150 across all three composite models to make the cut
 - Typically produces 30-50 names depending on market conditions
 
